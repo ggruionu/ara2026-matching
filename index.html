@@ -200,15 +200,22 @@ tr:nth-child(even) td{background:var(--bg);}
   <div id="tabExport" style="display:none"><p style="font-family:Arial,sans-serif;margin-bottom:1rem;color:var(--muted)">Download all submissions as CSV.</p><button class="btn btn-primary" onclick="exportCSV()">Download CSV</button></div>
   <div id="tabSetup" style="display:none">
     <div class="setup-guide">
-      <h3>How to set up Dropbox storage (5 minutes)</h3>
+      <h3>How to set up Dropbox storage — permanent refresh token</h3>
       <ol>
-        <li>Go to <a href="https://www.dropbox.com/developers/apps" target="_blank" style="color:var(--rust)">dropbox.com/developers/apps</a> and click <strong>Create app</strong>.</li>
-        <li>Choose <strong>Scoped access</strong> &rarr; <strong>App folder</strong> &rarr; name it <code>ARA2026</code>.</li>
-        <li>Under <strong>Permissions</strong>, enable <code>files.content.write</code> and <code>files.content.read</code>.</li>
-        <li>Under <strong>Settings</strong>, scroll to <strong>OAuth 2 &rarr; Generated access token</strong> and click <strong>Generate</strong>.</li>
-        <li>Copy the token. Go to the app URL and paste it in the setup banner at the top.</li>
-        <li>Each participant submission is saved as a JSON file in <code>Apps/ARA2026/</code> in your Dropbox.</li>
-        <li>You see all submissions here in the admin panel. Participants only see their own matches.</li>
+        <li>Go to <a href="https://www.dropbox.com/developers/apps" target="_blank" style="color:var(--rust)">dropbox.com/developers/apps</a>, click your <strong>ARA2026</strong> app.</li>
+        <li>Click the <strong>Permissions</strong> tab. Enable <code>files.content.write</code> and <code>files.content.read</code>. Click <strong>Submit</strong>.</li>
+        <li>Click the <strong>Settings</strong> tab. Note your <strong>App key</strong> and <strong>App secret</strong>.</li>
+        <li>Paste this URL in your browser (replace YOUR_APP_KEY):<br>
+          <code style="background:#f5e8e0;padding:2px 6px;border-radius:4px;font-size:.8rem">https://www.dropbox.com/oauth2/authorize?client_id=YOUR_APP_KEY&response_type=code&token_access_type=offline</code><br>
+          Click <strong>Allow</strong>. Copy the authorization code shown.</li>
+        <li>Go to <a href="https://hoppscotch.io" target="_blank" style="color:var(--rust)">hoppscotch.io</a>. Set method to POST, URL to <code>https://api.dropboxapi.com/oauth2/token</code>.</li>
+        <li>Under Body &rarr; application/x-www-form-urlencoded, add:<br>
+          <code>code</code> = your authorization code<br>
+          <code>grant_type</code> = authorization_code<br>
+          <code>client_id</code> = your App key<br>
+          <code>client_secret</code> = your App secret<br>
+          Click Send. Copy the <code>refresh_token</code> from the response.</li>
+        <li>Open index.html in a text editor. Fill in <code>DBX_APP_KEY</code>, <code>DBX_APP_SECRET</code>, and <code>DBX_REFRESH_TOKEN</code> at the top of the script. Save and re-upload to GitHub.</li>
       </ol>
       <br>
       <h3>How to host on GitHub Pages (free)</h3>
@@ -230,42 +237,79 @@ tr:nth-child(even) td{background:var(--bg);}
 
 <script>
 // ═══════════════════════════════════════════════════════════════════════
-// BEFORE UPLOADING TO GITHUB: replace YOUR_DROPBOX_TOKEN_HERE with your
-// actual Dropbox access token. Keep the quotes. Do not share this file
-// publicly after adding the real token — or use environment substitution.
+// BEFORE UPLOADING TO GITHUB: fill in all three values below.
+// Get App key + App secret from dropbox.com/developers/apps (Settings tab).
+// Get Refresh token by following the instructions in the admin Setup Guide.
 // ═══════════════════════════════════════════════════════════════════════
-const DROPBOX_TOKEN = 'sl.u.AGkbmOPq84xYU0FeB-exhREb8dMDoil_NCxxdvL7e4GBycDVindWXk50dtrGVx-3X7ywFmLts8H8EUYV5ehRDJMDqb7klcI6MVjSKFqt7cAsZGKjXHQe5Sl_Izv20G2vJcZwYa4FTHhT5CUtIABMHqOR75Qrgl9XIw2Mb_UHeoIbAFE60wc-gqFdVBgGsGVyKGy-t5adevXOJquj_8Xxore5A--cgWKz9VDlR9F1rDT8iK7HABGr58Fbi6aYEC6MPfNzAsmFJTsWZsv1o4mlI6Xjg9q-EdSa56jOTyjG61_UgOz1tTeDy30QOYzc479U-EX_jJ69Dzo7cS6mdbPf10YQ4v8w-3JLkzpbbtJtd-3E--Sa0w8a3_NUndEGuYBFeKZoSVcbSxUrxHjitXfNRHS-yRDsFTrb9OEApKEjT6IEwLUUuC1L9WGGjQPd3DAmo9d_9WU1IAvryJJzJA1hn3Uwz2EdaFcOeoFF7wduJvh137fZq91xRmiQmb5MwVCXPFBKJsOcKMRO35T4irbP3p1nxOywBJfmjAxdk7a3fot5J_1Xz1hvEcwFsCYUgQwWVWiJBS7fRvXKhsmVfAkJjUeZg6SzFdnw2aPoEAmmpOQLC87JsQeqksgFuRV0fxfgMCAGHz3i6R5pUmY8m2GbtuhGx9KkLzJDEkYURwklCPHRsBRPtMghinnJ_eyJMuUHBbdmbporWN7ap1C5KFFjZ55WGNqeV6Z8sA7_7uk4zRa_kLOVFyWt4BuKySfUKTl8naG9xbfWL0aKv_5kNEWg285DGCv8HYAQpM7vG8IhwEyRSoiFpEzJ-ogcwKGsT4Sg1Q7akiBeZJsLwYifBhT509-V7tE57zpa_C7TqdwtKeqok8I_KtsGWDvIOrp6fxsOor7yh7YuOoA_V7t4Sc7tZWPHG61xbGmtjc_dj6rba9p9WQRGVafKMKze8a3Qh3wG1MSw6vkAiiAiGKV1J83VRde8VxRUGHZ6cFC126KPj3BHEYFZviLsPkTd1G0Tubhkw8AzRwIOkgndDrS6eMVE1rSOFWu33zd8bCIIltbGbcwI6IjCWxhNHvBRzthFWww7Kak5MMZ1X2ljt6drsDFLBK1Et6rtqRIpq8eAKC5NqA1bCnQ71AgAu-R-k1YHc5FCMMihCXVoHpySPO0LNmSzv-Nd6ysh6NPhIbJz-eJIWWGomqAsHweoMn3n2hGVMvnaxdNBwLGdXf_dzbAnC60KwAiIZ2WPZ-3u9NVA21Mdfdd52mUJVEsIg_Kpez5Fb45uMosC2D6aNt-2Qb9MgOY-MTsuC3C-Ds6vK_wuni0FXFJaHw';
+const DBX_APP_KEY     = 'YOUR_APP_KEY_HERE';      // e.g. abc123xyz
+const DBX_APP_SECRET  = 'YOUR_APP_SECRET_HERE';   // e.g. def456uvw
+const DBX_REFRESH_TOKEN = 'YOUR_REFRESH_TOKEN_HERE'; // long string, never expires
 
 // ── CONFIG ──────────────────────────────────────────────────────────────────
 const DB_PATH='';  // Dropbox App folder root — no subfolder needed
-function getToken(){return DROPBOX_TOKEN;}
-// Token is hardcoded above — no runtime config needed
+
+// Cache the current access token (auto-refreshed when needed)
+let _dbxAccessToken = null;
+let _dbxTokenExpiry = 0;
+
+async function getToken() {
+  // Return cached token if still valid (with 60s buffer)
+  if (_dbxAccessToken && Date.now() < _dbxTokenExpiry - 60000) {
+    return _dbxAccessToken;
+  }
+  // Exchange refresh token for a new short-lived access token
+  const res = await fetch('https://api.dropboxapi.com/oauth2/token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
+      grant_type:    'refresh_token',
+      refresh_token: DBX_REFRESH_TOKEN,
+      client_id:     DBX_APP_KEY,
+      client_secret: DBX_APP_SECRET,
+    })
+  });
+  if (!res.ok) {
+    const txt = await res.text();
+    throw new Error('Could not refresh Dropbox token: ' + txt);
+  }
+  const data = await res.json();
+  _dbxAccessToken = data.access_token;
+  _dbxTokenExpiry = Date.now() + (data.expires_in * 1000);
+  return _dbxAccessToken;
+}
+
+function isConfigured() {
+  return DBX_APP_KEY !== 'YOUR_APP_KEY_HERE' &&
+         DBX_APP_SECRET !== 'YOUR_APP_SECRET_HERE' &&
+         DBX_REFRESH_TOKEN !== 'YOUR_REFRESH_TOKEN_HERE';
+}
 
 // ── DROPBOX ─────────────────────────────────────────────────────────────────
 async function dbxUpload(path,data){
-  if(getToken()==='DEMO')return;
+  if(!isConfigured())return;
+  const tok = await getToken();
   const r=await fetch('https://content.dropboxapi.com/2/files/upload',{
     method:'POST',
-    headers:{'Authorization':'Bearer '+getToken(),'Dropbox-API-Arg':JSON.stringify({path,mode:'overwrite'}),'Content-Type':'application/octet-stream'},
+    headers:{'Authorization':'Bearer '+tok,'Dropbox-API-Arg':JSON.stringify({path,mode:'overwrite'}),'Content-Type':'application/octet-stream'},
     body:JSON.stringify(data)
   });
   if(!r.ok)throw new Error(await r.text());
 }
 async function dbxDownload(path){
+  const tok = await getToken();
   const r=await fetch('https://content.dropboxapi.com/2/files/download',{
     method:'POST',
-    headers:{'Authorization':'Bearer '+getToken(),'Dropbox-API-Arg':JSON.stringify({path})}
+    headers:{'Authorization':'Bearer '+tok,'Dropbox-API-Arg':JSON.stringify({path})}
   });
   if(r.status===409)return null;
   if(!r.ok)throw new Error(await r.text());
   return r.json();
 }
 async function dbxList(path){
-  // Dropbox App folders: the app root is always '', not '/AppName'
-  // Use '' to list root of the app's folder (always exists)
+  const tok = await getToken();
   const r=await fetch('https://api.dropboxapi.com/2/files/list_folder',{
     method:'POST',
-    headers:{'Authorization':'Bearer '+getToken(),'Content-Type':'application/json'},
+    headers:{'Authorization':'Bearer '+tok,'Content-Type':'application/json'},
     body:JSON.stringify({path:''})
   });
   if(r.status===401){throw new Error('TOKEN_INVALID');}
@@ -277,14 +321,18 @@ async function dbxList(path){
 }
 
 async function dbxTestToken(){
-  // Quick check: get current account info
-  const r=await fetch('https://api.dropboxapi.com/2/users/get_current_account',{
-    method:'POST',
-    headers:{'Authorization':'Bearer '+getToken(),'Content-Type':'application/json'},
-    body:'null'
-  });
-  if(!r.ok) return null;
-  return r.json();
+  try {
+    const tok = await getToken();
+    const r=await fetch('https://api.dropboxapi.com/2/users/get_current_account',{
+      method:'POST',
+      headers:{'Authorization':'Bearer '+tok,'Content-Type':'application/json'},
+      body:'null'
+    });
+    if(!r.ok) return null;
+    return r.json();
+  } catch(e) {
+    throw new Error('Token refresh failed: ' + e.message);
+  }
 }
 
 // ── SPEAKERS (pre-loaded from ARA 2026 program) ──────────────────────────────
@@ -375,7 +423,7 @@ async function runPipeline(){
   await sleep(700);
   setStep(ids,1);
   try{
-    if(getToken()&&getToken()!=='DEMO'){
+    if(isConfigured()){
       const listing=await dbxList('');
       const others=listing.entries.filter(e=>e['.tag']==='file'&&e.name.endsWith('.json')&&!e.name.includes(currentUser.id));
       for(const entry of others.slice(0,60)){try{const s=await dbxDownload(entry.path_lower);if(s&&s.name&&s.keywords)pool.push(s);}catch(e){}}
@@ -434,12 +482,14 @@ async function loadAdmin(){
   tbody.innerHTML='<tr><td colspan="6" style="font-family:Arial,sans-serif;color:var(--muted);padding:1rem">Connecting to Dropbox&#8230;</td></tr>';
 
   // Step 1: validate token
-  const token=getToken();
-  if(!token||token==='YOUR_DROPBOX_TOKEN_HERE'){
+  if(!isConfigured()){
     tbody.innerHTML=`<tr><td colspan="6" style="color:#8B2500;font-family:Arial,sans-serif;padding:1rem">
-      <strong>No token configured.</strong> Open the HTML file, find the line<br>
-      <code style="background:#f5e8e0;padding:2px 6px;border-radius:4px">const DROPBOX_TOKEN = 'YOUR_DROPBOX_TOKEN_HERE';</code><br>
-      and replace the placeholder with your actual Dropbox token, then re-upload to GitHub.
+      <strong>Dropbox not configured.</strong> Open the HTML file and fill in<br>
+      <code style="background:#f5e8e0;padding:2px 6px;border-radius:4px">DBX_APP_KEY</code>,
+      <code style="background:#f5e8e0;padding:2px 6px;border-radius:4px">DBX_APP_SECRET</code>, and
+      <code style="background:#f5e8e0;padding:2px 6px;border-radius:4px">DBX_REFRESH_TOKEN</code>
+      near the top of the script, then re-upload to GitHub.
+      See the Setup Guide tab for step-by-step instructions.
     </td></tr>`;
     return;
   }
@@ -450,11 +500,11 @@ async function loadAdmin(){
     const acct=await dbxTestToken();
     if(!acct){
       tbody.innerHTML=`<tr><td colspan="6" style="color:#8B2500;font-family:Arial,sans-serif;padding:1rem">
-        <strong>Token rejected by Dropbox.</strong><br>
-        Check that: (1) the token starts with <code>sl.</code>, (2) you set it to No expiration, 
-        (3) you enabled <code>files.content.read</code> and <code>files.content.write</code> permissions 
-        on the Dropbox app before generating the token. If you added permissions after generating, 
-        revoke and generate a new token.
+        <strong>Could not connect to Dropbox.</strong><br>
+        Check that: (1) DBX_APP_KEY and DBX_APP_SECRET are correct (Settings tab of your Dropbox app),
+        (2) DBX_REFRESH_TOKEN is correct and was obtained with offline access,
+        (3) permissions <code>files.content.read</code> and <code>files.content.write</code> were enabled
+        <em>before</em> you generated the refresh token. If unsure, follow the Setup Guide tab again.
       </td></tr>`;
       return;
     }
